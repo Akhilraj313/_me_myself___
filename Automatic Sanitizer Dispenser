@@ -1,0 +1,63 @@
+#include "NewPing.h"
+#define T_pin 12//Defining input pin for Trigger pin of US Sensor
+#define E_pin 12//Defining input pin for Echo pin of US Sensor.Setting T_pin and E_pin as same to make the US work in 3 wire mode.
+#define M_pin 5//Defining output pin to Motor Driver A1/B1
+#define I_pin 6//Defining output pin to Indicators for motor activation->Buzzer and LED
+#define LI_pin 7//Defining output pin to level Indicators
+#define F_pin 11//Defining input pin for full level indication
+#define P_pin 13//Defining output pin for power indication and proper working of IC
+#define M_D 400//Defining max distance of US as 400 for NewPing library working
+NewPing sonar(T_pin, E_pin, M_D);//Setting the US as a distance measuring sonar device
+float distance;//To measure distance
+int full;
+void setup(){
+pinMode(M_pin,OUTPUT);//Motor Control
+pinMode(I_pin,OUTPUT);//Indicator Output
+pinMode(LI_pin,OUTPUT);//Low Level Indicator Output
+pinMode(F_pin,INPUT);//Full Input
+pinMode(P_pin,OUTPUT);//General Indicator/Power
+digitalWrite(M_pin,LOW);//Setting Relay OFF on startup
+digitalWrite(I_pin,LOW);//Setting all indicators OFF on startup
+digitalWrite(LI_pin,LOW);
+digitalWrite(P_pin,HIGH);//Setting power Indicator ON
+full=0;
+delay(3000);
+distance=1000;
+}
+void loop(){
+distance = sonar.ping_cm();
+if(distance<=5){
+activate();
+}
+else{
+levelF();
+//levelL();
+digitalWrite(I_pin,LOW);
+digitalWrite(M_pin,LOW);
+}
+}
+void activate(){
+digitalWrite(I_pin,HIGH);//Setting Indicators ON
+delay(100);
+digitalWrite(M_pin,HIGH);//Setting Relay ON
+delay(600);//Delay of 350ms
+digitalWrite(I_pin,LOW);//Setting Indicators OFF
+digitalWrite(M_pin,LOW);//Setting Relay OFF
+delay(2300);//Delay of 2s
+}
+void levelF(){
+int statefullevel=0;
+statefullevel=digitalRead(F_pin);//Determine the current state of full level input
+if(full!=1){
+
+  if(statefullevel==HIGH){
+    digitalWrite(LI_pin,HIGH);
+    delay(3000);
+    digitalWrite(LI_pin,LOW);
+    full=1;
+  }
+}
+else{
+  digitalWrite(LI_pin,LOW);
+}
+}
